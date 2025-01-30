@@ -98,7 +98,7 @@ namespace ImGuiNET
 
             if (ImGui.Begin("MainWindow",
                     ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoMove |
-                    ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoBringToFrontOnFocus))
+                    ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoBringToFrontOnFocus ))
             {
                 if (ImGui.BeginTabBar("MainTabBar"))
                 {
