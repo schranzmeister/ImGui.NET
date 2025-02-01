@@ -2,13 +2,9 @@
 using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
-using ImPlotNET;
-using System.Runtime.CompilerServices;
-using TestDotNetStandardLib;
 using Veldrid;
 using Veldrid.Sdl2;
 using Veldrid.StartupUtilities;
-using static ImGuiNET.ImGuiNative;
 
 namespace ImGuiNET
 {
@@ -32,6 +28,8 @@ namespace ImGuiNET
         private static uint s_tab_bar_flags = (uint)ImGuiTabBarFlags.Reorderable;
         static bool[] s_opened = { true, true, true, true }; // Persistent user state
 
+        public static bool _showSnmpWindow = false;
+
         static void SetThing(out float i, float val)
         {
             i = val;
@@ -41,7 +39,7 @@ namespace ImGuiNET
         {
             // Create window, GraphicsDevice, and all resources necessary for the demo.
             VeldridStartup.CreateWindowAndGraphicsDevice(
-                new WindowCreateInfo(50, 50, 1280, 720, WindowState.Normal, "ImGui.NET Sample Program"),
+                new WindowCreateInfo(1280, 384, 1280, 720, WindowState.Normal, "ImGui.NET Sample Program"),
                 new GraphicsDeviceOptions(true, null, true, ResourceBindingModel.Improved, true, true),
                 out _window,
                 out _gd);
@@ -110,6 +108,9 @@ namespace ImGuiNET
 
                 ImGui.End();
             }
+
+            if(_showSnmpWindow)
+                SnmpInfo.ShowSnmpInfo();
         }
     }
 }

@@ -1,16 +1,20 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.NetworkInformation;
 using System.Threading.Tasks;
+using Microsoft.Win32;
 
 namespace ImGuiNET;
 
 public class WindowsInfo
 {
-    private static string comboValue = "Ethernet";
-    private static int comboValueIndex = 0;
+    private static string comboValue      = "Ethernet";
+    private static int    comboValueIndex = 0;
+
+    static bool showPingInLanTab = false;
 
     public static void ShowWindowsInfo()
     {
@@ -46,7 +50,7 @@ public class WindowsInfo
                     {
                         var index = 0;
                         foreach (var allNetworkInterface in System.Net.NetworkInformation.NetworkInterface
-                                     .GetAllNetworkInterfaces())
+                                                                  .GetAllNetworkInterfaces())
                         {
                             if (allNetworkInterface.NetworkInterfaceType == NetworkInterfaceType.Loopback) continue;
                             if (ImGui.Selectable(allNetworkInterface.Name))
@@ -64,19 +68,19 @@ public class WindowsInfo
                     if (ImGui.BeginTable("NetworkTable", 3, ImGuiTableFlags.RowBg))
                     {
                         ImGui.TableSetupColumn("Type",
-                            ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
-                            250);
+                                               ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
+                                               250);
                         ImGui.TableSetupColumn("...",
-                            ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
-                            250);
+                                               ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
+                                               250);
                         ImGui.TableSetupColumn("....",
-                            ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                                               ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
 
                         ImGui.TableNextRow();
 
                         Row("Interface Type", networkInterface.NetworkInterfaceType.ToString(), false);
 
-                        Row("Speed", $"{networkInterface.Speed / 1000000} Mbit", false);
+                        Row("Speed",    $"{networkInterface.Speed / 1000000} Mbit", false);
                         Row("Hostname", System.Net.Dns.GetHostName());
 
                         Row("IPv4-Adresse", networkInterface.GetIPProperties().UnicastAddresses[0].Address.ToString());
@@ -85,19 +89,19 @@ public class WindowsInfo
 
                         if (networkInterface.GetIPProperties().GatewayAddresses.Count > 0)
                         {
-                            Row("Gateway", networkInterface.GetIPProperties().GatewayAddresses[0].Address.ToString());
-                            Row("DHCP", networkInterface.GetIPProperties().DhcpServerAddresses[0].ToString());
+                            Row("Gateway",    networkInterface.GetIPProperties().GatewayAddresses[0].Address.ToString());
+                            Row("DHCP",       networkInterface.GetIPProperties().DhcpServerAddresses[0].ToString());
                             Row("DNS-Server", networkInterface.GetIPProperties().DnsAddresses[0].ToString());
                         }
 
-                        Row("Primary DNS", ipProperties.DomainName);
-                        Row("Knotentyp", ipProperties.NodeType.ToString(), false);
+                        Row("Primary DNS",          ipProperties.DomainName);
+                        Row("Knotentyp",            ipProperties.NodeType.ToString(),    false);
                         Row("WINS-Proxy aktiviert", ipProperties.IsWinsProxy.ToString(), false);
                         Row("DHCP aktiviert",
                             networkInterface.GetIPProperties().GetIPv4Properties().IsDhcpEnabled.ToString(), false);
                         Row("Autokonfiguration aktiviert",
                             networkInterface.GetIPProperties().GetIPv4Properties().IsAutomaticPrivateAddressingActive
-                                .ToString(), false);
+                                            .ToString(), false);
 
 
                         ImGui.EndTable();
@@ -111,28 +115,28 @@ public class WindowsInfo
                     if (ImGui.BeginTable("NetworkTable2", 3, ImGuiTableFlags.RowBg))
                     {
                         ImGui.TableSetupColumn("Type",
-                            ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
-                            250);
+                                               ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
+                                               250);
                         ImGui.TableSetupColumn("...",
-                            ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
-                            250);
+                                               ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
+                                               250);
                         ImGui.TableSetupColumn("....",
-                            ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                                               ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
 
                         ImGui.TableNextRow();
 
                         Row("Bytes Received", (networkInterface.GetIPStatistics().BytesReceived).ToString("N0"), false);
-                        Row("Bytes Sent", (networkInterface.GetIPStatistics().BytesSent).ToString("N0"), false);
+                        Row("Bytes Sent",     (networkInterface.GetIPStatistics().BytesSent).ToString("N0"),     false);
 
 
                         var pReceived = (networkInterface.GetIPStatistics().IncomingPacketsDiscarded).ToString("N0");
                         var pReceivedErrors =
                             (networkInterface.GetIPStatistics().IncomingPacketsWithErrors).ToString("N0");
-                        var pSent = (networkInterface.GetIPStatistics().OutgoingPacketsDiscarded).ToString("N0");
+                        var pSent       = (networkInterface.GetIPStatistics().OutgoingPacketsDiscarded).ToString("N0");
                         var pSentErrors = (networkInterface.GetIPStatistics().OutgoingPacketsWithErrors).ToString("N0");
 
                         Row("Packets Received/ Errors", $"{pReceived} / {pReceivedErrors}", false);
-                        Row("Packets Sent/ Errors", $"{pSent} / {pSentErrors}", false);
+                        Row("Packets Sent/ Errors",     $"{pSent} / {pSentErrors}",         false);
 
 
                         Row("Non Unicast Packets Received",
@@ -146,8 +150,8 @@ public class WindowsInfo
                         Row("Incoming Unknown Protocol Packets",
                             (networkInterface.GetIPStatistics().IncomingUnknownProtocolPackets).ToString("N0"), false);
 
-                        Row("Latenz Cloudflare", GetPing("1.1.1.1"), false);
-                        Row("Latenz Google", GetPing("8.8.8.8"), false);
+                        Row("Latenz Cloudflare",    GetPing("1.1.1.1"), false);
+                        Row("Latenz Google",        GetPing("8.8.8.8"), false);
                         Row("Latenz Google Gaming", GetPing("8.8.4.4"), false);
 
                         ImGui.EndTable();
@@ -156,19 +160,18 @@ public class WindowsInfo
                     ImGui.EndTabItem();
                 }
 
-
                 if (ImGui.BeginTabItem("TCPInfo"))
                 {
                     if (ImGui.BeginTable("NetworkTable3", 3, ImGuiTableFlags.RowBg))
                     {
                         ImGui.TableSetupColumn("Type",
-                            ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
-                            250);
+                                               ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
+                                               250);
                         ImGui.TableSetupColumn("...",
-                            ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
-                            250);
+                                               ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
+                                               250);
                         ImGui.TableSetupColumn("....",
-                            ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                                               ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
 
                         ImGui.TableNextRow();
 
@@ -176,7 +179,7 @@ public class WindowsInfo
                             false);
                         Row("Connections Established",
                             (ipProperties.GetActiveTcpConnections()?.Where(x => x.State == TcpState.Established)
-                                .Count())
+                                         .Count())
                             .ToString(), false);
                         Row("Connections Listen",
                             (ipProperties.GetActiveTcpConnections()?.Where(x => x.State == TcpState.Listen).Count())
@@ -218,485 +221,546 @@ public class WindowsInfo
                     {
                         if (ImGui.BeginTabItem("Established"))
                         {
-                                ImGui.Text("The TCP handshake is complete. The connection has been established and data can be sent.");
-                            
-                                ImGui.Spacing();
-                                ImGui.Separator();
-                                
-                            if (ImGui.BeginTable("EstablishedTable", 5, ImGuiTableFlags.RowBg))
+                            ImGui.Text("The TCP handshake is complete. The connection has been established and data can be sent.");
+
+                            ImGui.Spacing();
+                            ImGui.Separator();
+
+                            if (ImGui.BeginTable("EstablishedTable", 4, ImGuiTableFlags.RowBg))
                             {
                                 ImGui.TableSetupColumn("Type",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
-                                    250);
+                                                       ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
+                                                       250);
                                 ImGui.TableSetupColumn("...",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
-                                    250);
+                                                       ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
+                                                       250);
                                 ImGui.TableSetupColumn("....",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed); 
+                                                       ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
                                 ImGui.TableSetupColumn(".....",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-                                ImGui.TableSetupColumn("......",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                                                       ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+
                                 ImGui.TableNextRow();
+
+                                List<string> ips = new List<string>();
+
                                 foreach (var connection in ipProperties.GetActiveTcpConnections())
                                 {
                                     if (connection.State != TcpState.Established) continue;
                                     if (connection.RemoteEndPoint.Address.ToString() == "127.0.0.1") continue;
-                                    IpRow(connection.LocalEndPoint.ToString(), connection.RemoteEndPoint.ToString());
+                                    ips.Add(connection.RemoteEndPoint.Address.ToString());
                                 }
 
-                                ImGui.EndTable();
-                            }
 
-                            
-                            ImGui.EndTabItem();
-                        }
+                                Task.Run(() => IPInfoFetcher.FetchIPInfo(ips));
 
-                        if (ImGui.BeginTabItem("Listen"))
-                        {
-                            ImGui.Text("The local endpoint of the TCP connection is listening for a connection request from any remote endpoint.");
-                            
-                            ImGui.Spacing();
-                            ImGui.Separator();
-
-                            if (ImGui.BeginTable("ListenTable", 5, ImGuiTableFlags.RowBg))
-                            {
-                                ImGui.TableSetupColumn("Type",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
-                                    250);
-                                ImGui.TableSetupColumn("...",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
-                                    250);
-                                ImGui.TableSetupColumn("....",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-
-                                ImGui.TableSetupColumn(".....",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-                                ImGui.TableSetupColumn("......",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-
-                                ImGui.TableNextRow();
-                                foreach (var connection in ipProperties.GetActiveTcpConnections())
+                                foreach (var lastResult in IPInfoFetcher.GetLastResults())
                                 {
-                                    if (connection.State != TcpState.Listen) continue;
-                                    if (connection.RemoteEndPoint.Address.ToString() == "127.0.0.1") continue;
-                                    IpRow(connection.LocalEndPoint.ToString(), connection.RemoteEndPoint.ToString());
+                                    IpInfoRow(lastResult);
                                 }
+
 
                                 ImGui.EndTable();
                             }
 
-                            ImGui.EndTabItem();
-                        }
-
-                        if (ImGui.BeginTabItem("CloseWait"))
-                        {
-                            ImGui.Text("The local endpoint of the TCP connection is waiting for a connection termination request from the local user.");
-                            
-                            ImGui.Spacing();
-                            ImGui.Separator();
-
-                            if (ImGui.BeginTable("CloseWaitTable", 5, ImGuiTableFlags.RowBg))
-                            {
-                                ImGui.TableSetupColumn("Type",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
-                                    250);
-                                ImGui.TableSetupColumn("...",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
-                                    250);
-                                ImGui.TableSetupColumn("....",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-
-                                ImGui.TableSetupColumn(".....",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-                                ImGui.TableSetupColumn("......",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-
-                                ImGui.TableNextRow();
-                                foreach (var connection in ipProperties.GetActiveTcpConnections())
-                                {
-                                    if (connection.State != TcpState.CloseWait) continue;
-                                    if (connection.RemoteEndPoint.Address.ToString() == "127.0.0.1") continue;
-                                    IpRow(connection.LocalEndPoint.ToString(), connection.RemoteEndPoint.ToString());
-                                }
-
-                                ImGui.EndTable();
-                            }
 
                             ImGui.EndTabItem();
                         }
 
-                        if (ImGui.BeginTabItem("DeleteTcb"))
-                        {
-                            ImGui.Text("The transmission control buffer (TCB) for the TCP connection is being deleted.");
-                            
-                            ImGui.Spacing();
-                            ImGui.Separator();
-
-                            if (ImGui.BeginTable("DeleteTcbTable", 5, ImGuiTableFlags.RowBg))
-                            {
-                                ImGui.TableSetupColumn("Type",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
-                                    250);
-                                ImGui.TableSetupColumn("...",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
-                                    250);
-                                ImGui.TableSetupColumn("....",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-
-                                ImGui.TableSetupColumn(".....",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-                                ImGui.TableSetupColumn("......",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-
-                                ImGui.TableNextRow();
-                                foreach (var connection in ipProperties.GetActiveTcpConnections())
-                                {
-                                    if (connection.State != TcpState.DeleteTcb) continue;
-                                    if (connection.RemoteEndPoint.Address.ToString() == "127.0.0.1") continue;
-                                    IpRow(connection.LocalEndPoint.ToString(), connection.RemoteEndPoint.ToString());
-                                }
-
-                                ImGui.EndTable();
-                            }
-
-                            ImGui.EndTabItem();
-                        }
-
-                        if (ImGui.BeginTabItem("FinWait1"))
-                        {
-                            ImGui.Text("The local endpoint of the TCP connection is waiting for a connection termination request from\nthe remote endpoint or for an acknowledgement of the connection termination request sent previously.");
-                            
-                            ImGui.Spacing();
-                            ImGui.Separator();
-
-                            if (ImGui.BeginTable("FinWait1Table", 5, ImGuiTableFlags.RowBg))
-                            {
-                                ImGui.TableSetupColumn("Type",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
-                                    250);
-                                ImGui.TableSetupColumn("...",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
-                                    250);
-                                ImGui.TableSetupColumn("....",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-
-                                ImGui.TableSetupColumn(".....",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-                                ImGui.TableSetupColumn("......",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-
-                                ImGui.TableNextRow();
-                                foreach (var connection in ipProperties.GetActiveTcpConnections())
-                                {
-                                    if (connection.State != TcpState.FinWait1) continue;
-                                    if (connection.RemoteEndPoint.Address.ToString() == "127.0.0.1") continue;
-                                    IpRow(connection.LocalEndPoint.ToString(), connection.RemoteEndPoint.ToString());
-                                }
-
-                                ImGui.EndTable();
-                            }
-
-                            ImGui.EndTabItem();
-                        }
-
-                        if (ImGui.BeginTabItem("FinWait2"))
-                        {
-                            ImGui.Text("The local endpoint of the TCP connection is waiting for a connection termination request from the remote endpoint.");
-                            
-                            ImGui.Spacing();
-                            ImGui.Separator();
-
-                            if (ImGui.BeginTable("FinWait2Table", 5, ImGuiTableFlags.RowBg))
-                            {
-                                ImGui.TableSetupColumn("Type",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
-                                    250);
-                                ImGui.TableSetupColumn("...",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
-                                    250);
-                                ImGui.TableSetupColumn("....",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-
-                                ImGui.TableSetupColumn(".....",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-                                ImGui.TableSetupColumn("......",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-
-                                ImGui.TableNextRow();
-                                foreach (var connection in ipProperties.GetActiveTcpConnections())
-                                {
-                                    if (connection.State != TcpState.FinWait2) continue;
-                                    if (connection.RemoteEndPoint.Address.ToString() == "127.0.0.1") continue;
-                                    IpRow(connection.LocalEndPoint.ToString(), connection.RemoteEndPoint.ToString());
-                                }
-
-                                ImGui.EndTable();
-                            }
-
-                            ImGui.EndTabItem();
-                        }
-
-                        if (ImGui.BeginTabItem("Closed"))
-                        {
-                            ImGui.Text("The TCP connection is closed.");
-                            
-                            ImGui.Spacing();
-                            ImGui.Separator();
-
-                            if (ImGui.BeginTable("ClosedTable", 5, ImGuiTableFlags.RowBg))
-                            {
-                                ImGui.TableSetupColumn("Type",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
-                                    250);
-                                ImGui.TableSetupColumn("...",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
-                                    250);
-                                ImGui.TableSetupColumn("....",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-
-                                ImGui.TableSetupColumn(".....",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-                                ImGui.TableSetupColumn("......",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-
-                                ImGui.TableNextRow();
-                                foreach (var connection in ipProperties.GetActiveTcpConnections())
-                                {
-                                    if (connection.State != TcpState.Closed) continue;
-                                    if (connection.RemoteEndPoint.Address.ToString() == "127.0.0.1") continue;
-                                    IpRow(connection.LocalEndPoint.ToString(), connection.RemoteEndPoint.ToString());
-                                }
-
-                                ImGui.EndTable();
-                            }
-
-                            ImGui.EndTabItem();
-                        }
-
-                        if (ImGui.BeginTabItem("Closing"))
-                        {
-                            ImGui.Text("The local endpoint of the TCP connection is waiting for an acknowledgement of the connection termination request sent previously.");
-                            
-                            ImGui.Spacing();
-                            ImGui.Separator();
-
-                            if (ImGui.BeginTable("ClosingTable", 5, ImGuiTableFlags.RowBg))
-                            {
-                                ImGui.TableSetupColumn("Type",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
-                                    250);
-                                ImGui.TableSetupColumn("...",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
-                                    250);
-                                ImGui.TableSetupColumn("....",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-
-                                ImGui.TableSetupColumn(".....",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-                                ImGui.TableSetupColumn("......",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-
-                                ImGui.TableNextRow();
-                                foreach (var connection in ipProperties.GetActiveTcpConnections())
-                                {
-                                    if (connection.State != TcpState.Closing) continue;
-                                    if (connection.RemoteEndPoint.Address.ToString() == "127.0.0.1") continue;
-                                    IpRow(connection.LocalEndPoint.ToString(), connection.RemoteEndPoint.ToString());
-                                }
-
-                                ImGui.EndTable();
-                            }
-
-                            ImGui.EndTabItem();
-                        }
-
-                        if (ImGui.BeginTabItem("Unknown"))
-                        {
-                            ImGui.Text("The TCP connection state is unknown.");
-                            
-                            ImGui.Spacing();
-                            ImGui.Separator();
-
-                            if (ImGui.BeginTable("UnknownTable", 5, ImGuiTableFlags.RowBg))
-                            {
-                                ImGui.TableSetupColumn("Type",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
-                                    250);
-                                ImGui.TableSetupColumn("...",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
-                                    250);
-                                ImGui.TableSetupColumn("....",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-
-                                ImGui.TableSetupColumn(".....",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-                                ImGui.TableSetupColumn("......",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-
-                                ImGui.TableNextRow();
-                                foreach (var connection in ipProperties.GetActiveTcpConnections())
-                                {
-                                    if (connection.State != TcpState.Unknown) continue;
-                                    if (connection.RemoteEndPoint.Address.ToString() == "127.0.0.1") continue;
-                                    IpRow(connection.LocalEndPoint.ToString(), connection.RemoteEndPoint.ToString());
-                                }
-
-                                ImGui.EndTable();
-                            }
-
-                            ImGui.EndTabItem();
-                        }
-
-                        if (ImGui.BeginTabItem("LastAck"))
-                        {
-                            ImGui.Text("The local endpoint of the TCP connection is waiting for the final acknowledgement of the connection termination request sent previously.");
-                            
-                            ImGui.Spacing();
-                            ImGui.Separator();
-
-                            if (ImGui.BeginTable("LastAckTable", 5, ImGuiTableFlags.RowBg))
-                            {
-                                ImGui.TableSetupColumn("Type",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
-                                    250);
-                                ImGui.TableSetupColumn("...",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
-                                    250);
-                                ImGui.TableSetupColumn("....",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-
-                                ImGui.TableSetupColumn(".....",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-                                ImGui.TableSetupColumn("......",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-
-                                ImGui.TableNextRow();
-                                foreach (var connection in ipProperties.GetActiveTcpConnections())
-                                {
-                                    if (connection.State != TcpState.LastAck) continue;
-                                    if (connection.RemoteEndPoint.Address.ToString() == "127.0.0.1") continue;
-                                    IpRow(connection.LocalEndPoint.ToString(), connection.RemoteEndPoint.ToString());
-                                }
-
-                                ImGui.EndTable();
-                            }
-
-                            ImGui.EndTabItem();
-                        }
-
-                        if (ImGui.BeginTabItem("SynSent"))
-                        {
-                            ImGui.Text("The local endpoint of the TCP connection has sent the remote endpoint a segment header with\nthe synchronize (SYN) control bit set and is waiting for a matching connection request.");
-                            
-                            ImGui.Spacing();
-                            ImGui.Separator();
-
-                            if (ImGui.BeginTable("SynSentTable", 5, ImGuiTableFlags.RowBg))
-                            {
-                                ImGui.TableSetupColumn("Type",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
-                                    250);
-                                ImGui.TableSetupColumn("...",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
-                                    250);
-                                ImGui.TableSetupColumn("....",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-
-                                ImGui.TableSetupColumn(".....",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-                                ImGui.TableSetupColumn("......",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-
-                                ImGui.TableNextRow();
-                                foreach (var connection in ipProperties.GetActiveTcpConnections())
-                                {
-                                    if (connection.State != TcpState.SynSent) continue;
-                                    if (connection.RemoteEndPoint.Address.ToString() == "127.0.0.1") continue;
-                                    IpRow(connection.LocalEndPoint.ToString(), connection.RemoteEndPoint.ToString());
-                                }
-
-                                ImGui.EndTable();
-                            }
-
-                            ImGui.EndTabItem();
-                        }
-
-                        if (ImGui.BeginTabItem("SynReceived"))
-                        {
-                            ImGui.Text("The local endpoint of the TCP connection has sent and received a connection request and is waiting for an acknowledgment.");
-                            
-                            ImGui.Spacing();
-                            ImGui.Separator();
-
-                            if (ImGui.BeginTable("SynReceivedTable", 5, ImGuiTableFlags.RowBg))
-                            {
-                                ImGui.TableSetupColumn("Type",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
-                                    250);
-                                ImGui.TableSetupColumn("...",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
-                                    250);
-                                ImGui.TableSetupColumn("....",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-
-                                ImGui.TableSetupColumn(".....",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-                                ImGui.TableSetupColumn("......",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-
-                                ImGui.TableNextRow();
-                                foreach (var connection in ipProperties.GetActiveTcpConnections())
-                                {
-                                    if (connection.State != TcpState.SynReceived) continue;
-                                    if (connection.RemoteEndPoint.Address.ToString() == "127.0.0.1") continue;
-                                    IpRow(connection.LocalEndPoint.ToString(), connection.RemoteEndPoint.ToString());
-                                }
-
-                                ImGui.EndTable();
-                            }
-
-                            ImGui.EndTabItem();
-                        }
-
-                        if (ImGui.BeginTabItem("TimeWait"))
-                        {
-                            ImGui.Text("The local endpoint of the TCP connection is waiting for enough time to pass to ensure\nthat the remote endpoint received the acknowledgement of its connection termination request.");
-                            
-                            ImGui.Spacing();
-                            ImGui.Separator();
-
-                            if (ImGui.BeginTable("TimeWaitTable", 5, ImGuiTableFlags.RowBg))
-                            {
-                                ImGui.TableSetupColumn("Type",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
-                                    250);
-                                ImGui.TableSetupColumn("...",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
-                                    250);
-                                ImGui.TableSetupColumn("....",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-
-                                ImGui.TableSetupColumn(".....",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-                                ImGui.TableSetupColumn("......",
-                                    ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-
-                                ImGui.TableNextRow();
-                                foreach (var connection in ipProperties.GetActiveTcpConnections())
-                                {
-                                    if (connection.State != TcpState.TimeWait) continue;
-                                    if (connection.RemoteEndPoint.Address.ToString() == "127.0.0.1") continue;
-                                    IpRow(connection.LocalEndPoint.ToString(), connection.RemoteEndPoint.ToString());
-                                }
-
-                                ImGui.EndTable();
-                            }
-
-                            ImGui.EndTabItem();
-                        }
+                        // if (ImGui.BeginTabItem("Listen"))
+                        // {
+                        //     ImGui.Text("The local endpoint of the TCP connection is listening for a connection request from any remote endpoint.");
+                        //
+                        //     ImGui.Spacing();
+                        //     ImGui.Separator();
+                        //
+                        //     if (ImGui.BeginTable("ListenTable", 5, ImGuiTableFlags.RowBg))
+                        //     {
+                        //         ImGui.TableSetupColumn("Type",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
+                        //                                250);
+                        //         ImGui.TableSetupColumn("...",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
+                        //                                250);
+                        //         ImGui.TableSetupColumn("....",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                        //
+                        //         ImGui.TableSetupColumn(".....",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                        //         ImGui.TableSetupColumn("......",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                        //
+                        //         ImGui.TableNextRow();
+                        //         foreach (var connection in ipProperties.GetActiveTcpConnections())
+                        //         {
+                        //             if (connection.State != TcpState.Listen) continue;
+                        //             if (connection.RemoteEndPoint.Address.ToString() == "127.0.0.1") continue;
+                        //             IpRow(connection.LocalEndPoint.ToString(), connection.RemoteEndPoint.ToString());
+                        //         }
+                        //
+                        //         ImGui.EndTable();
+                        //     }
+                        //
+                        //     ImGui.EndTabItem();
+                        // }
+                        //
+                        // if (ImGui.BeginTabItem("CloseWait"))
+                        // {
+                        //     ImGui.Text("The local endpoint of the TCP connection is waiting for a connection termination request from the local user.");
+                        //
+                        //     ImGui.Spacing();
+                        //     ImGui.Separator();
+                        //
+                        //     if (ImGui.BeginTable("CloseWaitTable", 5, ImGuiTableFlags.RowBg))
+                        //     {
+                        //         ImGui.TableSetupColumn("Type",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
+                        //                                250);
+                        //         ImGui.TableSetupColumn("...",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
+                        //                                250);
+                        //         ImGui.TableSetupColumn("....",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                        //
+                        //         ImGui.TableSetupColumn(".....",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                        //         ImGui.TableSetupColumn("......",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                        //
+                        //         ImGui.TableNextRow();
+                        //         foreach (var connection in ipProperties.GetActiveTcpConnections())
+                        //         {
+                        //             if (connection.State != TcpState.CloseWait) continue;
+                        //             if (connection.RemoteEndPoint.Address.ToString() == "127.0.0.1") continue;
+                        //             IpRow(connection.LocalEndPoint.ToString(), connection.RemoteEndPoint.ToString());
+                        //         }
+                        //
+                        //         ImGui.EndTable();
+                        //     }
+                        //
+                        //     ImGui.EndTabItem();
+                        // }
+                        //
+                        // if (ImGui.BeginTabItem("DeleteTcb"))
+                        // {
+                        //     ImGui.Text("The transmission control buffer (TCB) for the TCP connection is being deleted.");
+                        //
+                        //     ImGui.Spacing();
+                        //     ImGui.Separator();
+                        //
+                        //     if (ImGui.BeginTable("DeleteTcbTable", 5, ImGuiTableFlags.RowBg))
+                        //     {
+                        //         ImGui.TableSetupColumn("Type",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
+                        //                                250);
+                        //         ImGui.TableSetupColumn("...",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
+                        //                                250);
+                        //         ImGui.TableSetupColumn("....",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                        //
+                        //         ImGui.TableSetupColumn(".....",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                        //         ImGui.TableSetupColumn("......",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                        //
+                        //         ImGui.TableNextRow();
+                        //         foreach (var connection in ipProperties.GetActiveTcpConnections())
+                        //         {
+                        //             if (connection.State != TcpState.DeleteTcb) continue;
+                        //             if (connection.RemoteEndPoint.Address.ToString() == "127.0.0.1") continue;
+                        //             IpRow(connection.LocalEndPoint.ToString(), connection.RemoteEndPoint.ToString());
+                        //         }
+                        //
+                        //         ImGui.EndTable();
+                        //     }
+                        //
+                        //     ImGui.EndTabItem();
+                        // }
+                        //
+                        // if (ImGui.BeginTabItem("FinWait1"))
+                        // {
+                        //     ImGui.Text("The local endpoint of the TCP connection is waiting for a connection termination request from\nthe remote endpoint or for an acknowledgement of the connection termination request sent previously.");
+                        //
+                        //     ImGui.Spacing();
+                        //     ImGui.Separator();
+                        //
+                        //     if (ImGui.BeginTable("FinWait1Table", 5, ImGuiTableFlags.RowBg))
+                        //     {
+                        //         ImGui.TableSetupColumn("Type",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
+                        //                                250);
+                        //         ImGui.TableSetupColumn("...",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
+                        //                                250);
+                        //         ImGui.TableSetupColumn("....",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                        //
+                        //         ImGui.TableSetupColumn(".....",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                        //         ImGui.TableSetupColumn("......",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                        //
+                        //         ImGui.TableNextRow();
+                        //         foreach (var connection in ipProperties.GetActiveTcpConnections())
+                        //         {
+                        //             if (connection.State != TcpState.FinWait1) continue;
+                        //             if (connection.RemoteEndPoint.Address.ToString() == "127.0.0.1") continue;
+                        //             IpRow(connection.LocalEndPoint.ToString(), connection.RemoteEndPoint.ToString());
+                        //         }
+                        //
+                        //         ImGui.EndTable();
+                        //     }
+                        //
+                        //     ImGui.EndTabItem();
+                        // }
+                        //
+                        // if (ImGui.BeginTabItem("FinWait2"))
+                        // {
+                        //     ImGui.Text("The local endpoint of the TCP connection is waiting for a connection termination request from the remote endpoint.");
+                        //
+                        //     ImGui.Spacing();
+                        //     ImGui.Separator();
+                        //
+                        //     if (ImGui.BeginTable("FinWait2Table", 5, ImGuiTableFlags.RowBg))
+                        //     {
+                        //         ImGui.TableSetupColumn("Type",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
+                        //                                250);
+                        //         ImGui.TableSetupColumn("...",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
+                        //                                250);
+                        //         ImGui.TableSetupColumn("....",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                        //
+                        //         ImGui.TableSetupColumn(".....",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                        //         ImGui.TableSetupColumn("......",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                        //
+                        //         ImGui.TableNextRow();
+                        //         foreach (var connection in ipProperties.GetActiveTcpConnections())
+                        //         {
+                        //             if (connection.State != TcpState.FinWait2) continue;
+                        //             if (connection.RemoteEndPoint.Address.ToString() == "127.0.0.1") continue;
+                        //             IpRow(connection.LocalEndPoint.ToString(), connection.RemoteEndPoint.ToString());
+                        //         }
+                        //
+                        //         ImGui.EndTable();
+                        //     }
+                        //
+                        //     ImGui.EndTabItem();
+                        // }
+                        //
+                        // if (ImGui.BeginTabItem("Closed"))
+                        // {
+                        //     ImGui.Text("The TCP connection is closed.");
+                        //
+                        //     ImGui.Spacing();
+                        //     ImGui.Separator();
+                        //
+                        //     if (ImGui.BeginTable("ClosedTable", 5, ImGuiTableFlags.RowBg))
+                        //     {
+                        //         ImGui.TableSetupColumn("Type",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
+                        //                                250);
+                        //         ImGui.TableSetupColumn("...",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
+                        //                                250);
+                        //         ImGui.TableSetupColumn("....",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                        //
+                        //         ImGui.TableSetupColumn(".....",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                        //         ImGui.TableSetupColumn("......",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                        //
+                        //         ImGui.TableNextRow();
+                        //         foreach (var connection in ipProperties.GetActiveTcpConnections())
+                        //         {
+                        //             if (connection.State != TcpState.Closed) continue;
+                        //             if (connection.RemoteEndPoint.Address.ToString() == "127.0.0.1") continue;
+                        //             IpRow(connection.LocalEndPoint.ToString(), connection.RemoteEndPoint.ToString());
+                        //         }
+                        //
+                        //         ImGui.EndTable();
+                        //     }
+                        //
+                        //     ImGui.EndTabItem();
+                        // }
+                        //
+                        // if (ImGui.BeginTabItem("Closing"))
+                        // {
+                        //     ImGui.Text("The local endpoint of the TCP connection is waiting for an acknowledgement of the connection termination request sent previously.");
+                        //
+                        //     ImGui.Spacing();
+                        //     ImGui.Separator();
+                        //
+                        //     if (ImGui.BeginTable("ClosingTable", 5, ImGuiTableFlags.RowBg))
+                        //     {
+                        //         ImGui.TableSetupColumn("Type",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
+                        //                                250);
+                        //         ImGui.TableSetupColumn("...",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
+                        //                                250);
+                        //         ImGui.TableSetupColumn("....",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                        //
+                        //         ImGui.TableSetupColumn(".....",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                        //         ImGui.TableSetupColumn("......",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                        //
+                        //         ImGui.TableNextRow();
+                        //         foreach (var connection in ipProperties.GetActiveTcpConnections())
+                        //         {
+                        //             if (connection.State != TcpState.Closing) continue;
+                        //             if (connection.RemoteEndPoint.Address.ToString() == "127.0.0.1") continue;
+                        //             IpRow(connection.LocalEndPoint.ToString(), connection.RemoteEndPoint.ToString());
+                        //         }
+                        //
+                        //         ImGui.EndTable();
+                        //     }
+                        //
+                        //     ImGui.EndTabItem();
+                        // }
+                        //
+                        // if (ImGui.BeginTabItem("Unknown"))
+                        // {
+                        //     ImGui.Text("The TCP connection state is unknown.");
+                        //
+                        //     ImGui.Spacing();
+                        //     ImGui.Separator();
+                        //
+                        //     if (ImGui.BeginTable("UnknownTable", 5, ImGuiTableFlags.RowBg))
+                        //     {
+                        //         ImGui.TableSetupColumn("Type",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
+                        //                                250);
+                        //         ImGui.TableSetupColumn("...",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
+                        //                                250);
+                        //         ImGui.TableSetupColumn("....",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                        //
+                        //         ImGui.TableSetupColumn(".....",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                        //         ImGui.TableSetupColumn("......",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                        //
+                        //         ImGui.TableNextRow();
+                        //         foreach (var connection in ipProperties.GetActiveTcpConnections())
+                        //         {
+                        //             if (connection.State != TcpState.Unknown) continue;
+                        //             if (connection.RemoteEndPoint.Address.ToString() == "127.0.0.1") continue;
+                        //             IpRow(connection.LocalEndPoint.ToString(), connection.RemoteEndPoint.ToString());
+                        //         }
+                        //
+                        //         ImGui.EndTable();
+                        //     }
+                        //
+                        //     ImGui.EndTabItem();
+                        // }
+                        //
+                        // if (ImGui.BeginTabItem("LastAck"))
+                        // {
+                        //     ImGui.Text("The local endpoint of the TCP connection is waiting for the final acknowledgement of the connection termination request sent previously.");
+                        //
+                        //     ImGui.Spacing();
+                        //     ImGui.Separator();
+                        //
+                        //     if (ImGui.BeginTable("LastAckTable", 5, ImGuiTableFlags.RowBg))
+                        //     {
+                        //         ImGui.TableSetupColumn("Type",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
+                        //                                250);
+                        //         ImGui.TableSetupColumn("...",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
+                        //                                250);
+                        //         ImGui.TableSetupColumn("....",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                        //
+                        //         ImGui.TableSetupColumn(".....",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                        //         ImGui.TableSetupColumn("......",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                        //
+                        //         ImGui.TableNextRow();
+                        //         foreach (var connection in ipProperties.GetActiveTcpConnections())
+                        //         {
+                        //             if (connection.State != TcpState.LastAck) continue;
+                        //             if (connection.RemoteEndPoint.Address.ToString() == "127.0.0.1") continue;
+                        //             IpRow(connection.LocalEndPoint.ToString(), connection.RemoteEndPoint.ToString());
+                        //         }
+                        //
+                        //         ImGui.EndTable();
+                        //     }
+                        //
+                        //     ImGui.EndTabItem();
+                        // }
+                        //
+                        // if (ImGui.BeginTabItem("SynSent"))
+                        // {
+                        //     ImGui.Text("The local endpoint of the TCP connection has sent the remote endpoint a segment header with\nthe synchronize (SYN) control bit set and is waiting for a matching connection request.");
+                        //
+                        //     ImGui.Spacing();
+                        //     ImGui.Separator();
+                        //
+                        //     if (ImGui.BeginTable("SynSentTable", 5, ImGuiTableFlags.RowBg))
+                        //     {
+                        //         ImGui.TableSetupColumn("Type",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
+                        //                                250);
+                        //         ImGui.TableSetupColumn("...",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
+                        //                                250);
+                        //         ImGui.TableSetupColumn("....",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                        //
+                        //         ImGui.TableSetupColumn(".....",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                        //         ImGui.TableSetupColumn("......",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                        //
+                        //         ImGui.TableNextRow();
+                        //         foreach (var connection in ipProperties.GetActiveTcpConnections())
+                        //         {
+                        //             if (connection.State != TcpState.SynSent) continue;
+                        //             if (connection.RemoteEndPoint.Address.ToString() == "127.0.0.1") continue;
+                        //             IpRow(connection.LocalEndPoint.ToString(), connection.RemoteEndPoint.ToString());
+                        //         }
+                        //
+                        //         ImGui.EndTable();
+                        //     }
+                        //
+                        //     ImGui.EndTabItem();
+                        // }
+                        //
+                        // if (ImGui.BeginTabItem("SynReceived"))
+                        // {
+                        //     ImGui.Text("The local endpoint of the TCP connection has sent and received a connection request and is waiting for an acknowledgment.");
+                        //
+                        //     ImGui.Spacing();
+                        //     ImGui.Separator();
+                        //
+                        //     if (ImGui.BeginTable("SynReceivedTable", 5, ImGuiTableFlags.RowBg))
+                        //     {
+                        //         ImGui.TableSetupColumn("Type",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
+                        //                                250);
+                        //         ImGui.TableSetupColumn("...",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
+                        //                                250);
+                        //         ImGui.TableSetupColumn("....",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                        //
+                        //         ImGui.TableSetupColumn(".....",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                        //         ImGui.TableSetupColumn("......",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                        //
+                        //         ImGui.TableNextRow();
+                        //         foreach (var connection in ipProperties.GetActiveTcpConnections())
+                        //         {
+                        //             if (connection.State != TcpState.SynReceived) continue;
+                        //             if (connection.RemoteEndPoint.Address.ToString() == "127.0.0.1") continue;
+                        //             IpRow(connection.LocalEndPoint.ToString(), connection.RemoteEndPoint.ToString());
+                        //         }
+                        //
+                        //         ImGui.EndTable();
+                        //     }
+                        //
+                        //     ImGui.EndTabItem();
+                        // }
+                        //
+                        // if (ImGui.BeginTabItem("TimeWait"))
+                        // {
+                        //     ImGui.Text("The local endpoint of the TCP connection is waiting for enough time to pass to ensure\nthat the remote endpoint received the acknowledgement of its connection termination request.");
+                        //
+                        //     ImGui.Spacing();
+                        //     ImGui.Separator();
+                        //
+                        //     if (ImGui.BeginTable("TimeWaitTable", 5, ImGuiTableFlags.RowBg))
+                        //     {
+                        //         ImGui.TableSetupColumn("Type",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
+                        //                                250);
+                        //         ImGui.TableSetupColumn("...",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
+                        //                                250);
+                        //         ImGui.TableSetupColumn("....",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                        //
+                        //         ImGui.TableSetupColumn(".....",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                        //         ImGui.TableSetupColumn("......",
+                        //                                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                        //
+                        //         ImGui.TableNextRow();
+                        //         foreach (var connection in ipProperties.GetActiveTcpConnections())
+                        //         {
+                        //             if (connection.State != TcpState.TimeWait) continue;
+                        //             if (connection.RemoteEndPoint.Address.ToString() == "127.0.0.1") continue;
+                        //             IpRow(connection.LocalEndPoint.ToString(), connection.RemoteEndPoint.ToString());
+                        //         }
+                        //
+                        //         ImGui.EndTable();
+                        //     }
+                        //
+                        //     ImGui.EndTabItem();
+                        // }
 
                         ImGui.EndTabBar();
+                    }
+
+                    ImGui.EndTabItem();
+                }
+
+                if (ImGui.BeginTabItem("LANInfo"))
+                {
+                    Task.Run(async () => await LanInfoFetcher.Scan());
+
+                    ImGui.Text(LanInfoFetcher.estimatedIPRange);
+                    ImGui.Text(LanInfoFetcher.statusText);
+
+                    if(ImGui.Button("Show Ping"))
+                    {
+                        showPingInLanTab = !showPingInLanTab;
+                    }
+
+                    if (ImGui.BeginTable("LANTable", 6, ImGuiTableFlags.RowBg))
+                    {
+                        ImGui.TableSetupColumn("IP Adresse",
+                                               ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
+                                               250);
+                        ImGui.TableSetupColumn("Hostname",
+                                               ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed,
+                                               250);
+                        ImGui.TableSetupColumn("IsPrinter",
+                                               ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                        ImGui.TableSetupColumn("MAC Adresse",
+                                               ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                        ImGui.TableSetupColumn("SMPT Settings",
+                                               ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                        ImGui.TableSetupColumn("Open Ports",
+                                               ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+
+                        ImGui.TableHeadersRow();
+                        ImGui.TableNextRow();
+
+
+
+                        if (LanInfoFetcher.Devices != null)
+                        {
+                            foreach (var device in LanInfoFetcher.Devices)
+                            {
+                               LanIpInfoRow(device);
+
+                            }
+                        }
+
+
+                        ImGui.EndTable();
                     }
 
                     ImGui.EndTabItem();
@@ -710,8 +774,6 @@ public class WindowsInfo
 
         static void Row(string type, string value, bool withButton = true)
         {
-           Task.Run(() => IPInfoFetcher.FetchIPInfo("8.8.8.8"));
-            
             ImGui.TableNextColumn();
             ImGui.Text(type);
             ImGui.TableNextColumn();
@@ -727,35 +789,33 @@ public class WindowsInfo
 
         static void IpRow(string localIp, string remoteIp)
         {
-            Task.Run(() => IPInfoFetcher.FetchIPInfo(remoteIp.Split(":")[0]));
-            
             ImGui.TableNextColumn();
             ImGui.Text(localIp);
             ImGui.TableNextColumn();
             ImGui.Text(remoteIp);
             ImGui.TableNextColumn();
             IPHostEntry entry = null;
-            
-           try
-           {
+
+            try
+            {
                 entry = Dns.GetHostEntry(remoteIp.Split(":")[0]);
-               ImGui.Text(entry.HostName);
-           }
-           catch (Exception e)
-           {
-               ImGui.Text("Host unbekannt...");
-             
-           }
-            
+                ImGui.Text(entry.HostName);
+            }
+            catch (Exception e)
+            {
+                ImGui.Text("Host unbekannt...");
+            }
+
             ImGui.TableNextColumn();
-            
-            ImGui.Text(IPInfoFetcher.GetLastResult());
+
+            // ImGui.Text(IPInfoFetcher.GetLastResult());
             ImGui.TableNextColumn();
 
             if (ImGui.Button("Copy Remote IP##" + remoteIp))
             {
                 ImGui.SetClipboardText(remoteIp);
             }
+
             ImGui.SameLine();
 
 
@@ -768,6 +828,65 @@ public class WindowsInfo
             }
         }
 
+        static void IpInfoRow(string lastResult)
+        {
+            foreach (var s in lastResult.Split(";"))
+            {
+                ImGui.TableNextColumn();
+                ImGui.Text(s);
+            }
+        }
+
+        static void LanIpInfoRow(Device device)
+        {
+            ImGui.TableNextColumn();
+            ImGui.Text(device.IpAddress);
+            ImGui.TableNextColumn();
+            ImGui.Text(device.HostName);
+            ImGui.TableNextColumn();
+            ImGui.Text($"{device.IsPrinter}");
+            ImGui.TableNextColumn();
+            ImGui.Text(device.MacAddress);
+            ImGui.TableNextColumn();
+            if (ImGui.Button("Show SNMP##" + device.MacAddress))
+            {
+                SnmpInfo.ipAddress = device.IpAddress;
+                 Program._showSnmpWindow = true;
+            }
+            ImGui.TableNextColumn();
+
+            foreach (var port in device.OpenPorts)
+            {
+                ImGui.Text($"{port}");
+                ImGui.SameLine();
+                if (ImGui.Button("Open##" +  device.IpAddress + port))
+                {
+                    var path = GetDefaultBrowserPath();
+                    System.Diagnostics.Process.Start(path, $"http://{device.IpAddress}:{port}");
+                }
+            }
+
+            if (showPingInLanTab)
+            {
+            ImGui.TableNextColumn();
+                ImGui.Text(GetPing(device.IpAddress));
+            }
+        }
+
+        static string GetDefaultBrowserPath()
+        {
+            string  registryKey = @"HKEY_CURRENT_USER\Software\Microsoft\Windows\Shell\Associations\UrlAssociations\http\UserChoice";
+            string? progId      = Registry.GetValue(registryKey, "ProgId", null) as string;
+
+            if (string.IsNullOrEmpty(progId)) return null;
+
+            registryKey = $"HKEY_CLASSES_ROOT\\{progId}\\shell\\open\\command";
+            string? browserPath = Registry.GetValue(registryKey, null, null) as string;
+
+            return browserPath?.Trim('"').Split('"')[0];
+        }
+    }
+
         static string GetCountryInfo(string ip)
         {
             //return "Not implemented yet";
@@ -775,39 +894,63 @@ public class WindowsInfo
 
             using (HttpClient client = new HttpClient())
             {
-                Task<HttpResponseMessage> response =  client.GetAsync(url);
+                Task<HttpResponseMessage> response = client.GetAsync(url);
                 if (response.Result.IsSuccessStatusCode)
                 {
-                    string json =  response.Result.Content.ReadAsStream().ToString();
+                    string json = response.Result.Content.ReadAsStream().ToString();
                     return json;
                 }
-               
             }
-            
+
             return "";
         }
-        
+
         static string GetPing(string host)
         {
             using Ping ping = new();
-            var time = 0;
+
             try
             {
                 var reply = ping.Send(host);
-                for (var i = 0; i < 1; i++)
+                if (reply?.Status == IPStatus.Success)
                 {
-                    if (reply?.Status == IPStatus.Success)
-                    {
-                        time += (int)reply.RoundtripTime;
-                    }
+                    return $"{reply.RoundtripTime} ms";
+                }
+                else
+                {
+                    return $"Ping fehlgeschlagen: {reply?.Status}";
                 }
             }
             catch (Exception ex)
             {
                 return $"Fehler: {ex.Message}";
             }
+        }
 
-            return $"{time / 1} ms";
+        static Task<string> GetPingAsync(string host)
+        {
+            return GetPingAsyncA(host);
+        }
+
+        static async Task<string> GetPingAsyncA(string host)
+        {
+            using Ping ping = new();
+
+            try
+            {
+                var reply = await ping.SendPingAsync(host);
+                if (reply?.Status == IPStatus.Success)
+                {
+                    return $"{reply.RoundtripTime} ms";
+                }
+                else
+                {
+                    return $"Ping fehlgeschlagen: {reply?.Status}";
+                }
+            }
+            catch (Exception ex)
+            {
+                return $"Fehler: {ex.Message}";
+            }
         }
     }
-}
