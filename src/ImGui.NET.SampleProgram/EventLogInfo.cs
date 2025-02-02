@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Eventing.Reader;
+using System.Linq;
 using Microsoft.Win32;
 
 namespace ImGuiNET;
@@ -22,32 +23,37 @@ public class EventLogInfo
         {
             if (eventLogDataFetched)
             {
-                ImGui.BeginTable("EventLogTable", 4,
-                                 ImGuiTableFlags.Resizable | ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.BordersOuterV |
-                                 ImGuiTableFlags.BordersInnerH | ImGuiTableFlags.BordersOuterH | ImGuiTableFlags.RowBg |
-                                 ImGuiTableFlags.ScrollY | ImGuiTableFlags.ScrollX | ImGuiTableFlags.SizingFixedFit);
-
-                ImGui.TableSetupColumn("TimeGenerated",     ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-                ImGui.TableSetupColumn("ID",                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-                ImGui.TableSetupColumn("ProviderName",      ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-                ImGui.TableSetupColumn("FormatDescription", ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
-
-                ImGui.TableHeadersRow();
-
-                foreach (var logData in eventLogData)
+                if (eventLogData.Count > 0)
                 {
-                    ImGui.TableNextRow();
-                    ImGui.TableNextColumn();
-                    ImGui.Text(logData.TimeCreated.ToString());
-                    ImGui.TableNextColumn();
-                    ImGui.Text(logData.Id.ToString());
-                    ImGui.TableNextColumn();
-                    ImGui.Text(logData.ProviderName);
-                    ImGui.TableNextColumn();
-                    ImGui.Text(logData.FormatDescription);
-                }
+                    ImGui.BeginTable("EventLogTable", 4,
+                                     ImGuiTableFlags.Resizable | ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.BordersOuterV |
+                                     ImGuiTableFlags.BordersInnerH | ImGuiTableFlags.BordersOuterH | ImGuiTableFlags.RowBg |
+                                     ImGuiTableFlags.ScrollY | ImGuiTableFlags.ScrollX | ImGuiTableFlags.SizingFixedFit);
+
+                    ImGui.TableSetupColumn("TimeGenerated",     ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                    ImGui.TableSetupColumn("ID",                ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                    ImGui.TableSetupColumn("ProviderName",      ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+                    ImGui.TableSetupColumn("FormatDescription", ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.WidthFixed);
+
+                    ImGui.TableHeadersRow();
+
+
+                    foreach (var logData in eventLogData)
+                    {
+                        ImGui.TableNextRow();
+                        ImGui.TableNextColumn();
+                        ImGui.Text(logData.ToString());
+                        ImGui.TableNextColumn();
+                        ImGui.Text(logData.Id.ToString());
+                        ImGui.TableNextColumn();
+                        ImGui.Text(logData.ProviderName);
+                        ImGui.TableNextColumn();
+                        ImGui.Text(logData.FormatDescription);
+                    }
+
 
                 ImGui.EndTable();
+                }
             }
             else
             {
@@ -58,15 +64,16 @@ public class EventLogInfo
         }
     }
 
-    static void ListAvailableLogs()
+    static void ListAvailableLogs(string filter = "Logitech-Lamparray-Driver/Errors")
     {
         if(!Program.IsAdministrator()) return;
         if (eventLogDataFetched) return;
 
         try
         {
-            EventLogSession session = new EventLogSession();
-            foreach (string logName in session.GetLogNames())
+            string[] windowsLogs = ["Install"];
+
+            foreach (string logName in windowsLogs)
             {
                 var eLogData = new EventLogData
                                {
@@ -82,6 +89,7 @@ public class EventLogInfo
         catch (Exception ex)
         {
             Console.WriteLine($"Fehler beim Abrufen der Protokollnamen: {ex.Message}");
+            Console.ReadKey( );
         }
     }
 
@@ -105,6 +113,7 @@ public class EventLogInfo
         catch (Exception ex)
         {
             Console.WriteLine($"Fehler beim Zugriff auf {logName}: {ex.Message}");
+            Console.ReadKey( );
         }
     }
 
