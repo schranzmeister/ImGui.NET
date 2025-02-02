@@ -121,6 +121,7 @@ namespace ImGuiNET
                     WindowsInfo.ShowWindowsInfo();
                     TaskManager.ShowTaskManager();
                     ServicesInfo.ShowServicesInfo();
+                    EventLogInfo.ShowEventLog();
 
                     ImGui.EndTabBar();
                 }
