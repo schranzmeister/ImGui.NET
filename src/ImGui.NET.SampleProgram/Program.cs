@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
+using System.Security.Principal;
 using Veldrid;
 using Veldrid.Sdl2;
 using Veldrid.StartupUtilities;
@@ -88,7 +89,14 @@ namespace ImGuiNET
             _cl.Dispose();
             _gd.Dispose();
         }
-
+      public  static bool IsAdministrator()
+        {
+            using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
+            {
+                WindowsPrincipal principal = new WindowsPrincipal(identity);
+                return principal.IsInRole(WindowsBuiltInRole.Administrator);
+            }
+        }
         private static unsafe void SubmitUI()
         {
             ImGui.SetNextWindowPos(new Vector2(0, 0));
@@ -98,10 +106,21 @@ namespace ImGuiNET
                     ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoMove |
                     ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoBringToFrontOnFocus ))
             {
+                if (!IsAdministrator())
+                {
+                    ImGui.TextColored(new Vector4(1, 0, 0, 1), "You need to run this program as administrator to use all features.");
+                    if (ImGui.Button("Restart as Administrator"))
+                    {
+                        RestartAsAdministrator();
+                        _window.Close();
+                    }
+                }
                 if (ImGui.BeginTabBar("MainTabBar"))
                 {
+
                     WindowsInfo.ShowWindowsInfo();
                     TaskManager.ShowTaskManager();
+                    ServicesInfo.ShowServicesInfo();
 
                     ImGui.EndTabBar();
                 }
@@ -111,6 +130,28 @@ namespace ImGuiNET
 
             if(_showSnmpWindow)
                 SnmpInfo.ShowSnmpInfo();
+        }
+
+        static void RestartAsAdministrator()
+        {
+            var processModule = Process.GetCurrentProcess().MainModule;
+            if (processModule == null) return;
+
+            var exeName = processModule.FileName;
+            var startInfo = new ProcessStartInfo(exeName)
+                            {
+                                UseShellExecute = true,
+                                Verb            = "runas" // Erzwingt Admin-Rechte
+                            };
+
+            try
+            {
+                Process.Start(startInfo);
+            }
+            catch
+            {
+                Console.WriteLine("Fehler: Das Programm konnte nicht mit Administratorrechten neu gestartet werden.");
+            }
         }
     }
 }

@@ -9,53 +9,142 @@ public static class SnmpInfo
 {
     public static string ipAddress = "";
 
+    public static SnmpData snmpData        = new SnmpData();
+   public static        bool     snmpDataFetched = false;
+
+    public class SnmpData
+    {
+        public string PrinterName  { get; set; }
+        public string SerialNumber { get; set; }
+
+        public string CyanTonerCapacity { get; set; }
+        public string CyanTonerLevel    { get; set; }
+
+        private float CyanToner = -1;
+
+        public float GetCyantoner()
+        {
+            if (CyanToner < 0)
+            {
+                CyanToner = int.TryParse(CyanTonerCapacity, out var capacity) && int.TryParse(CyanTonerLevel, out var level)
+                                ? (level / (float)capacity) * 100
+                                : 0;
+                return CyanToner;
+            }
+            else
+            {
+                return CyanToner;
+            }
+        }
+
+        public string MagentaTonerCapacity { get; set; }
+        public string MagentaTonerLevel    { get; set; }
+
+        private float MagentaToner  = -1;
+
+        public float GetMagentaToner()
+        {
+            if (MagentaToner < 0)
+            {
+                MagentaToner = int.TryParse(MagentaTonerCapacity, out var capacity) && int.TryParse(MagentaTonerLevel, out var level)
+                                   ? (level / (float)capacity) * 100
+                                   : 0;
+                return MagentaToner;
+            }
+            else
+            {
+                return MagentaToner;
+            }
+        }
+
+        public string YellowTonerCapacity { get; set; }
+        public string YellowTonerLevel    { get; set; }
+
+        private float YellowToner  = -1;
+
+        public float GetYellowToner()
+        {
+            if (YellowToner < 0)
+            {
+                YellowToner = int.TryParse(YellowTonerCapacity, out var capacity) && int.TryParse(YellowTonerLevel, out var level)
+                                  ? (level / (float)capacity) * 100
+                                  : 0;
+                return YellowToner;
+            }
+            else
+            {
+                return YellowToner;
+            }
+        }
+
+        public  string BlackTonerCapacity { get; set; }
+        public  string BlackTonerLevel    { get; set; }
+        private float  BlackToner = -1;
+
+        public float GetBlackToner()
+        {
+            if (BlackToner < 0)
+            {
+                BlackToner = int.TryParse(BlackTonerCapacity, out var capacity) && int.TryParse(BlackTonerLevel, out var level)
+                                 ? (level / (float)capacity) * 100
+                                 : 0;
+                return BlackToner;
+            }
+            else
+            {
+                return BlackToner;
+            }
+        }
+
+        public void Reset()
+        {
+            CyanToner = -1;
+            MagentaToner = -1;
+            YellowToner = -1;
+            BlackToner = -1;
+        }
+    }
+
+    static void GetSnmpData()
+    {
+        if (snmpDataFetched) return;
+        snmpDataFetched = true;
+
+        snmpData.Reset();
+
+        snmpData.PrinterName  = GetSnmpData("1.3.6.1.2.1.43.5.1.1.16.1").Result;
+        snmpData.SerialNumber = GetSnmpData("1.3.6.1.2.1.43.5.1.1.17.1").Result;
+
+        snmpData.CyanTonerCapacity = GetSnmpData("1.3.6.1.2.1.43.11.1.1.8.1.1").Result;
+        snmpData.CyanTonerLevel    = GetSnmpData("1.3.6.1.2.1.43.11.1.1.9.1.1").Result;
+
+        snmpData.MagentaTonerCapacity = GetSnmpData("1.3.6.1.2.1.43.11.1.1.8.1.2").Result;
+        snmpData.MagentaTonerLevel    = GetSnmpData("1.3.6.1.2.1.43.11.1.1.9.1.2").Result;
+
+        snmpData.YellowTonerCapacity = GetSnmpData("1.3.6.1.2.1.43.11.1.1.8.1.3").Result;
+        snmpData.YellowTonerLevel    = GetSnmpData("1.3.6.1.2.1.43.11.1.1.9.1.3").Result;
+
+        snmpData.BlackTonerCapacity = GetSnmpData("1.3.6.1.2.1.43.11.1.1.8.1.4").Result;
+        snmpData.BlackTonerLevel    = GetSnmpData("1.3.6.1.2.1.43.11.1.1.9.1.4").Result;
+    }
+
     public static void ShowSnmpInfo()
     {
-        if (ImGui.Begin("SNMP Info", ref Program._showSnmpWindow))
-        {
-            SnmpRow("Printer Name",  "1.3.6.1.2.1.43.5.1.1.16.1");
-            SnmpRow("Serial Number", "1.3.6.1.2.1.43.5.1.1.17.1");
+        GetSnmpData();
 
-            var capacity = 0;
-            var level    = 0;
+        ImGui.SetNextWindowSize( new Vector2(220, 170));
+
+        if (ImGui.Begin("SNMP Info",ref Program._showSnmpWindow,  ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoDocking))
+        {
+            SnmpRow("Printer Name",  snmpData.PrinterName);
+            SnmpRow("Serial Number", snmpData.SerialNumber);
+
             if (ImGui.BeginTable("TonerLevelTable", 2))
             {
-                var cyanTonerCapacity = GetSnmpData("1.3.6.1.2.1.43.11.1.1.8.1.1").Result;
-                var cyanTonerLevel    = GetSnmpData("1.3.6.1.2.1.43.11.1.1.9.1.1").Result;
-
-                var cyanToner = int.TryParse(cyanTonerCapacity, out capacity) && int.TryParse(cyanTonerLevel, out level)
-                                    ? (level / (float)capacity) * 100
-                                    : 0;
-
-                SnmpTonerLevelRow("Cyan Toner", cyanToner);
-
-                var magentaTonerCapacity = GetSnmpData("1.3.6.1.2.1.43.11.1.1.8.1.2").Result;
-                var magentaTonerLevel    = GetSnmpData("1.3.6.1.2.1.43.11.1.1.9.1.2").Result;
-
-                var magentaToner = int.TryParse(magentaTonerCapacity, out capacity) && int.TryParse(magentaTonerLevel, out level)
-                                       ? (level / (float)capacity) * 100
-                                       : 0;
-
-                SnmpTonerLevelRow("Magenta Toner", magentaToner);
-
-                var yellowTonerCapacity = GetSnmpData("1.3.6.1.2.1.43.11.1.1.8.1.3").Result;
-                var yellowTonerLevel    = GetSnmpData("1.3.6.1.2.1.43.11.1.1.9.1.3").Result;
-
-                var yellowToner = int.TryParse(yellowTonerCapacity, out capacity) && int.TryParse(yellowTonerLevel, out level)
-                                      ? (level / (float)capacity) * 100
-                                      : 0;
-
-                 SnmpTonerLevelRow("Yellow Toner", yellowToner);
-
-                var blackTonerCapacity = GetSnmpData("1.3.6.1.2.1.43.11.1.1.8.1.4").Result;
-                var blackTonerLevel    = GetSnmpData("1.3.6.1.2.1.43.11.1.1.9.1.4").Result;
-
-                var blackToner = int.TryParse(blackTonerCapacity, out capacity) && int.TryParse(blackTonerLevel, out level)
-                                     ? (level / (float)capacity) * 100
-                                     : 0;
-
-                SnmpTonerLevelRow("Black Toner", blackToner);
-
+                SnmpTonerLevelRow("Cyan Toner",    snmpData.GetCyantoner());
+                SnmpTonerLevelRow("Magenta Toner", snmpData.GetMagentaToner());
+                SnmpTonerLevelRow("Yellow Toner",  snmpData.GetYellowToner());
+                SnmpTonerLevelRow("Black Toner",   snmpData.GetBlackToner());
 
                 ImGui.EndTable();
             }
@@ -64,32 +153,15 @@ public static class SnmpInfo
         }
     }
 
-    static int ToInt(this string value)
+    static void SnmpRow(string name, string value)
     {
-        return int.TryParse(value, out var result) ? result : 0;
-    }
-
-    static int ToInt(this float value)
-    {
-        return (int)value;
-    }
-
-    static float ToFloat(this string value)
-    {
-        return float.TryParse(value, out var result) ? result : 0;
-    }
-
-    static void SnmpRow(string name, string oid)
-    {
-        var snmpData = GetSnmpData(oid).Result;
-
         if (ImGui.BeginTable("oidTable", 2))
         {
             ImGui.TableNextRow();
             ImGui.TableNextColumn();
             ImGui.Text(name);
             ImGui.TableNextColumn();
-            ImGui.Text(snmpData);
+            ImGui.Text(value);
 
             ImGui.EndTable();
         }
@@ -101,10 +173,7 @@ public static class SnmpInfo
         ImGui.TableNextColumn();
         ImGui.Text(name);
         ImGui.TableNextColumn();
-        ImGui.ProgressBar(value  / 100, new Vector2(0.0f, 0.0f));
-
-
-
+        ImGui.ProgressBar(value / 100, new Vector2(0.0f, 0.0f));
     }
 
     public static async Task<string> GetSnmpData(string oid)

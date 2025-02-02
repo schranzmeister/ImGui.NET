@@ -39,6 +39,9 @@ namespace ImGuiNET
             isLoading = true;
 
             lastFetchTime = DateTime.Now;
+
+            SnmpInfo.snmpDataFetched = false;
+
             string localIP    = GetLocalIP();
             string subnetMask = GetSubnetMask(localIP);
             var    ipRange    = GetIpRange(localIP, subnetMask);
@@ -182,6 +185,7 @@ namespace ImGuiNET
                            HostName  = "Fehler beim Abrufen der Geräteinformationen"
                        };
             }
+
         }
 
         // Versucht, den Hostnamen einer IP zu ermitteln

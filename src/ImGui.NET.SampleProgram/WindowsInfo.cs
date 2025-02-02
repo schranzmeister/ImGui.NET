@@ -16,13 +16,15 @@ public class WindowsInfo
 
     static bool showPingInLanTab = false;
 
+    static NetworkInterface   networkInterface;
+    static IPGlobalProperties ipProperties;
+
     public static void ShowWindowsInfo()
     {
         if (ImGui.BeginTabItem("WindowsInfo"))
         {
-            var networkInterface =
-                System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces()[comboValueIndex];
-            var ipProperties = System.Net.NetworkInformation.IPGlobalProperties.GetIPGlobalProperties();
+            networkInterface = NetworkInterface.GetAllNetworkInterfaces()[comboValueIndex];
+            ipProperties     = IPGlobalProperties.GetIPGlobalProperties();
 
             if (ImGui.BeginTabBar("WindowsInfoTabBar", ImGuiTabBarFlags.None))
             {
@@ -723,7 +725,7 @@ public class WindowsInfo
                     ImGui.Text(LanInfoFetcher.estimatedIPRange);
                     ImGui.Text(LanInfoFetcher.statusText);
 
-                    if(ImGui.Button("Show Ping"))
+                    if (ImGui.Button("Show Ping"))
                     {
                         showPingInLanTab = !showPingInLanTab;
                     }
@@ -749,13 +751,11 @@ public class WindowsInfo
                         ImGui.TableNextRow();
 
 
-
                         if (LanInfoFetcher.Devices != null)
                         {
                             foreach (var device in LanInfoFetcher.Devices)
                             {
-                               LanIpInfoRow(device);
-
+                                LanIpInfoRow(device);
                             }
                         }
 
@@ -850,16 +850,17 @@ public class WindowsInfo
             ImGui.TableNextColumn();
             if (ImGui.Button("Show SNMP##" + device.MacAddress))
             {
-                SnmpInfo.ipAddress = device.IpAddress;
-                 Program._showSnmpWindow = true;
+                SnmpInfo.ipAddress      = device.IpAddress;
+                Program._showSnmpWindow = true;
             }
+
             ImGui.TableNextColumn();
 
             foreach (var port in device.OpenPorts)
             {
                 ImGui.Text($"{port}");
                 ImGui.SameLine();
-                if (ImGui.Button("Open##" +  device.IpAddress + port))
+                if (ImGui.Button("Open##" + device.IpAddress + port))
                 {
                     var path = GetDefaultBrowserPath();
                     System.Diagnostics.Process.Start(path, $"http://{device.IpAddress}:{port}");
@@ -868,7 +869,7 @@ public class WindowsInfo
 
             if (showPingInLanTab)
             {
-            ImGui.TableNextColumn();
+                ImGui.TableNextColumn();
                 ImGui.Text(GetPing(device.IpAddress));
             }
         }
@@ -887,70 +888,70 @@ public class WindowsInfo
         }
     }
 
-        static string GetCountryInfo(string ip)
+    static string GetCountryInfo(string ip)
+    {
+        //return "Not implemented yet";
+        string url = $"http://ip-api.com/json/{ip}";
+
+        using (HttpClient client = new HttpClient())
         {
-            //return "Not implemented yet";
-            string url = $"http://ip-api.com/json/{ip}";
-
-            using (HttpClient client = new HttpClient())
+            Task<HttpResponseMessage> response = client.GetAsync(url);
+            if (response.Result.IsSuccessStatusCode)
             {
-                Task<HttpResponseMessage> response = client.GetAsync(url);
-                if (response.Result.IsSuccessStatusCode)
-                {
-                    string json = response.Result.Content.ReadAsStream().ToString();
-                    return json;
-                }
-            }
-
-            return "";
-        }
-
-        static string GetPing(string host)
-        {
-            using Ping ping = new();
-
-            try
-            {
-                var reply = ping.Send(host);
-                if (reply?.Status == IPStatus.Success)
-                {
-                    return $"{reply.RoundtripTime} ms";
-                }
-                else
-                {
-                    return $"Ping fehlgeschlagen: {reply?.Status}";
-                }
-            }
-            catch (Exception ex)
-            {
-                return $"Fehler: {ex.Message}";
+                string json = response.Result.Content.ReadAsStream().ToString();
+                return json;
             }
         }
 
-        static Task<string> GetPingAsync(string host)
+        return "";
+    }
+
+    static string GetPing(string host)
+    {
+        using Ping ping = new();
+
+        try
         {
-            return GetPingAsyncA(host);
+            var reply = ping.Send(host);
+            if (reply?.Status == IPStatus.Success)
+            {
+                return $"{reply.RoundtripTime} ms";
+            }
+            else
+            {
+                return $"Ping fehlgeschlagen: {reply?.Status}";
+            }
         }
-
-        static async Task<string> GetPingAsyncA(string host)
+        catch (Exception ex)
         {
-            using Ping ping = new();
-
-            try
-            {
-                var reply = await ping.SendPingAsync(host);
-                if (reply?.Status == IPStatus.Success)
-                {
-                    return $"{reply.RoundtripTime} ms";
-                }
-                else
-                {
-                    return $"Ping fehlgeschlagen: {reply?.Status}";
-                }
-            }
-            catch (Exception ex)
-            {
-                return $"Fehler: {ex.Message}";
-            }
+            return $"Fehler: {ex.Message}";
         }
     }
+
+    static Task<string> GetPingAsync(string host)
+    {
+        return GetPingAsyncA(host);
+    }
+
+    static async Task<string> GetPingAsyncA(string host)
+    {
+        using Ping ping = new();
+
+        try
+        {
+            var reply = await ping.SendPingAsync(host);
+            if (reply?.Status == IPStatus.Success)
+            {
+                return $"{reply.RoundtripTime} ms";
+            }
+            else
+            {
+                return $"Ping fehlgeschlagen: {reply?.Status}";
+            }
+        }
+        catch (Exception ex)
+        {
+            return $"Fehler: {ex.Message}";
+        }
+    }
+}
