@@ -25,7 +25,7 @@ public class ServicesInfo
 
         if (ImGui.BeginTabItem("ServicesInfo"))
         {
-            if (ImGui.BeginChild("ServicesListChild", new Vector2(350, -1), ImGuiChildFlags.Borders))
+            if (ImGui.BeginChild("ServicesList", new Vector2(350, -1), ImGuiChildFlags.Borders))
             {
                 foreach (var group in serviceGroups)
                 {
@@ -48,7 +48,7 @@ public class ServicesInfo
 
             ImGui.SameLine();
 
-            if (ImGui.BeginChild("ServiceInfoChild", new Vector2(-1, -1), ImGuiChildFlags.Borders))
+            if (ImGui.BeginChild("ServiceInfo", new Vector2(-1, -1), ImGuiChildFlags.Borders))
             {
                 if (selectedServiceGroup != -1)
                 {
@@ -87,6 +87,9 @@ public class ServicesInfo
                                     try
                                     {
                                         sc.Start();
+                                        var selectedServ = selectedService;
+                                        GetServices();
+                                        selectedService = selectedServ;
                                     }
                                     catch (Exception e)
                                     {
@@ -104,6 +107,9 @@ public class ServicesInfo
                                         {
                                             sc.Stop();
                                             sc.WaitForStatus(ServiceControllerStatus.Stopped);
+                                            var selectedServ = selectedService;
+                                            GetServices();
+                                            selectedService = selectedServ;
                                         }
                                         catch (Exception e)
                                         {
@@ -120,6 +126,9 @@ public class ServicesInfo
                                             sc.Stop();
                                             sc.WaitForStatus(ServiceControllerStatus.Stopped);
                                             sc.Start();
+                                            var selectedServ = selectedService;
+                                            GetServices();
+                                            selectedService = selectedServ;
                                         }
                                         catch (Exception e)
                                         {
@@ -138,6 +147,9 @@ public class ServicesInfo
                                         try
                                         {
                                             sc.Pause();
+                                            var selectedServ = selectedService;
+                                            GetServices();
+                                            selectedService = selectedServ;
                                         }
                                         catch (Exception e)
                                         {
@@ -152,6 +164,9 @@ public class ServicesInfo
                                         try
                                         {
                                             sc.Continue();
+                                            var selectedServ = selectedService;
+                                            GetServices();
+                                            selectedService = selectedServ;
                                         }
                                         catch (Exception e)
                                         {
@@ -376,7 +391,7 @@ public class ServicesInfo
 
 
             ImGui.SetCursorScreenPos(new Vector2(366, Program._window.Height - 40));
-            if (ImGui.BeginChild("ServiceConsoleChild", new Vector2(-1, 30)))
+            if (ImGui.BeginChild("ServiceConsole", new Vector2(-1, 30)))
             {
                 ImGui.InputTextMultiline("text", ref errorText, 1000, new Vector2(-1, -1), ImGuiInputTextFlags.ReadOnly);
                 ImGui.EndChild();
